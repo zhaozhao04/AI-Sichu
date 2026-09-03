@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# 环境变量与密钥
+.env
+.env.*
+!.env.example
+
+# LangGraph 运行时状态
+.langgraph_api/
+
+# 记忆数据库（含对话记录）
+**/resources/*.db
