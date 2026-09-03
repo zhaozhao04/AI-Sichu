@@ -16,13 +16,19 @@ dependencies = [
     "langchain-tavily>=0.2.18",
     "langgraph>=1.2.11",
     "langgraph-checkpoint-sqlite>=3.1.1",
-    "langgraph-cli[inmem]>=0.4.31",
-    "pytest>=9.1.1",
-    "streamlit>=1.63.0",
 ]
 
 [project.scripts]
 sichu = "sichu:main"
+
+# 仅本地开发使用，Vercel 构建时不会安装
+[dependency-groups]
+dev = [
+    "langgraph-cli[inmem]>=0.4.31",
+    "pytest>=9.1.1",
+    "streamlit>=1.63.0",
+    "uvicorn>=0.30.0",
+]
 
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple/"

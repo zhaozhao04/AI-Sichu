@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncIterator, Optional
@@ -6,6 +7,7 @@ from typing import Any, AsyncIterator, Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessageChunk, HumanMessage
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from ...agents.chief import build_agent
@@ -14,8 +16,11 @@ from ...models.schemas import ChatRequest
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# 记忆数据库路径：src/sichu/resources/personal_chief.db
-DB_PATH = Path(__file__).parents[3] / "resources" / "personal_chief.db"
+# 记忆数据库路径：本地默认 src/sichu/resources/personal_chief.db
+# Serverless 环境（如 Vercel）通过 SICHU_DB_PATH 指向 /tmp，或自动回退进程内记忆
+DB_PATH = Path(
+    os.getenv("SICHU_DB_PATH", str(Path(__file__).parents[3] / "resources" / "personal_chief.db"))
+)
 
 # 在 lifespan 中初始化的带记忆 agent
 _agent: Optional[Any] = None
@@ -23,13 +28,19 @@ _agent: Optional[Any] = None
 
 @asynccontextmanager
 async def lifespan(app):
-    """启动时创建带 Sqlite 记忆的 agent，关闭时释放数据库连接"""
+    """启动时创建带 Sqlite 记忆的 agent，关闭时释放数据库连接；
+    文件系统不可写（serverless 只读）时回退为进程内记忆"""
     global _agent
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    async with AsyncSqliteSaver.from_conn_string(str(DB_PATH)) as checkpointer:
-        await checkpointer.setup()
-        _agent = build_agent(checkpointer=checkpointer)
-        logger.info("私厨 agent 已就绪，记忆数据库: %s", DB_PATH)
+    try:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        async with AsyncSqliteSaver.from_conn_string(str(DB_PATH)) as checkpointer:
+            await checkpointer.setup()
+            _agent = build_agent(checkpointer=checkpointer)
+            logger.info("私厨 agent 已就绪，记忆数据库: %s", DB_PATH)
+            yield
+    except Exception:
+        logger.exception("Sqlite 记忆初始化失败，回退为进程内记忆（实例重启后丢失）")
+        _agent = build_agent(checkpointer=InMemorySaver())
         yield
     _agent = None
 

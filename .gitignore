@@ -17,5 +17,5 @@ wheels/
 # LangGraph 运行时状态
 .langgraph_api/
 
-# 记忆数据库（含对话记录）
-**/resources/*.db
+# 记忆数据库及运行时数据（含对话记录、WAL 文件）
+**/resources/

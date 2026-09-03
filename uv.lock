@@ -2633,9 +2633,14 @@ dependencies = [
     { name = "langchain-tavily" },
     { name = "langgraph" },
     { name = "langgraph-checkpoint-sqlite" },
+]
+
+[package.dev-dependencies]
+dev = [
     { name = "langgraph-cli", extra = ["inmem"] },
     { name = "pytest" },
     { name = "streamlit" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -2648,9 +2653,14 @@ requires-dist = [
     { name = "langchain-tavily", specifier = ">=0.2.18" },
     { name = "langgraph", specifier = ">=1.2.11" },
     { name = "langgraph-checkpoint-sqlite", specifier = ">=3.1.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
     { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.4.31" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "streamlit", specifier = ">=1.63.0" },
+    { name = "uvicorn", specifier = ">=0.30.0" },
 ]
 
 [[package]]
